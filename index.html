@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Integration plateformjs pour le loginGoogle -->
+    <!--<script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="1017472278165-c4u054t9k5ofnpo0954iml0u9vdna6s5.apps.googleusercontent.com">
+    <meta name="google-signin-scope" content="profile email https://www.googleapis.com/auth/plus.login">-->
+    <script src="https://apis.google.com/js/api:client.js"></script>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+
+     <!--Optional theme 
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">-->
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
+<style type="text/css">
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: #5e5e5e;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    #ContainerLogin {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-content: space-around;
+    }
+</style>
+</head>
+
+<body>
+    <div id="fb-root"></div>
+
+
+<!-- integration SDK Google SignIn -->
+    <script>
+var googleUser = {};
+  var googleStartAuth = function() {
+    gapi.load('auth2', function(){
+      // Retrieve the singleton for the GoogleAuth library and set up the client.
+      auth2 = gapi.auth2.init({
+        client_id: '1017472278165-c4u054t9k5ofnpo0954iml0u9vdna6s5.apps.googleusercontent.com',
+        cookiepolicy: 'single_host_origin',
+        // Request scopes in addition to 'profile' and 'email'
+        scope: 'https://www.googleapis.com/auth/plus.login'
+      });
+      attachSignin(document.getElementById('signinCustomGoogle'));
+
+      // Listen for sign-in state changes.
+        auth2.isSignedIn.listen(signinChanged);
+
+        // Listen for changes to current user.
+  auth2.currentUser.listen(userChanged);
+
+  // Sign in the user if they are currently signed in.
+  if (auth2.isSignedIn.get() == true) {
+    auth2.signIn();
+  }
+    });
+  };
+
+  /** * Listener method for sign-out live value. * * @param {boolean} val the updated signed out state. */
+var signinChanged = function (val) {
+  console.log('Signin state changed to ', val);
+};
+
+/** * Listener method for when the user changes. * * @param {GoogleUser} user the updated user. */
+var userChanged = function (user) {
+  onLoginSuccess(user);
+};
+
+  function attachSignin(element) {
+    //console.log(element.id);
+    auth2.attachClickHandler(element, {},
+        function(googleUser) {
+            onLoginSuccess(googleUser);
+
+        }, function(error) {
+          alert(JSON.stringify(error, undefined, 2));
+        });
+  }
+
+
+    function onLoginSuccess(googleUser) {
+    var profile = googleUser.getBasicProfile();
+
+    
+
+if(profile !== null && profile !== undefined)
+  {
+      gapi.client.load('plus','v1', function(){
+ var request = gapi.client.plus.people.get({
+   'userId': 'me'
+ });
+ request.execute(function(resp) {
+
+   socket.emit('InsertOrUpdateGoogleUser', resp); // Transmet le message au serveur 
+ });
+});
+
+      $('#imgGoogle').attr('src',profile.getImageUrl());
+      $('#statusGoogle').show();
+      $('#loginButton').hide();
+      $('#connexion').modal('hide');
+  }
+    }
+
+    function signOutGoogle() {
+      var auth2 = gapi.auth2.getAuthInstance();
+      auth2.signOut().then(function () {
+        console.log('User signed out.');
+        location.reload();
+      });
+    }
+  </script>
+
+
+
+
+    <!-- integration SDK facebook -->
+<script>
+  // This is called with the results from from FB.getLoginStatus().
+  function statusChangeCallback(response) {
+    // console.log('statusChangeCallback');
+    // console.log(response);
+    // The response object is returned with a status field that lets the
+    // app know the current login status of the person.
+    // Full docs on the response object can be found in the documentation
+    // for FB.getLoginStatus().
+    if (response.status === 'connected') {
+      // Logged into your app and Facebook.
+      GetInfoOnFacebookConnect();
+    } else if (response.status === 'not_authorized') {
+      // The person is logged into Facebook, but not your app.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into this app.';
+    } else {
+      // The person is not logged into Facebook, so we're not sure if
+      // they are logged into this app or not.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into Facebook.';
+    }
+  }
+
+  // This function is called when someone finishes with the Login
+  // Button.  See the onlogin handler attached to it in the sample
+  // code below.
+  function checkLoginState() {
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+  }
+    function checkLogOut() { 
+        //this function logout user 
+        FB.logout(function(response) 
+        { 
+            if(response != null)
+            {
+location.reload();
+             } 
+            });
+         }
+
+  window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '389265214773426',
+    cookie     : true,  // enable cookies to allow the server to access 
+                        // the session
+    xfbml      : true,  // parse social plugins on this page
+    version    : 'v2.8' // use graph api version 2.8
+  });
+
+  // Now that we've initialized the JavaScript SDK, we call 
+  // FB.getLoginStatus().  This function gets the state of the
+  // person visiting this page and can return one of three states to
+  // the callback you provide.  They can be:
+  //
+  // 1. Logged into your app ('connected')
+  // 2. Logged into Facebook, but not your app ('not_authorized')
+  // 3. Not logged into Facebook and can't tell if they are logged into
+  //    your app or not.
+  //
+  // These three cases are handled in the callback function.
+
+  FB.getLoginStatus(function(response) {
+    statusChangeCallback(response);
+  });
+
+  };
+
+  // Load the SDK asynchronously
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+</script>
+
+
+<div id="content" class="container">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">TruckFoodApi</a>
+            </div>
+            <form action="/" method="post" id="formulaire_chat" class="navbar-form navbar-left">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="message" id="message" placeholder="Votre message..." size="50" autofocus />
+                    <input type="submit" class="btn btn-default" id="envoi_message" value="Envoyer" />
+                </div>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a id="loginButton" href="#connexion" data-toggle="modal" data-backdrop="static">Connectez-vous</a>
+                </li>
+                <li>
+                    <div id="status">
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <img class="dropdown-toggle" id="imgFaceBook">
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                <button class="dropdown-item btn btn-primary center-block" type="button" onclick="javascript:checkLogOut();">Se déconnecter</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="statusGoogle">
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button" id="dropdownMenu2Google" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <img height="50" width="50" class="dropdown-toggle" id="imgGoogle">
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenu2Google">
+                                <button class="dropdown-item btn btn-primary center-block" type="button" onclick="javascript:signOutGoogle();">Se déconnecter</button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+</div>
+<!-- /.container-fluid -->
+</nav>
+</div>
+<div id="map"></div>
+
+<!-- Fenetre Model de Connexion -->
+<div class="modal fade" id="connexion">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">x</button>
+                <h4 class="modal-title">Connectez-vous</h4>
+            </div>
+            <div class="modal-body">
+                <div id"ContainerLogin">
+                    <div><button class="btn btn-primary btn-block" onclick="loginFaceBookConnector();"><span class="fa fa-facebook-square fa-2x social pull-left"></span><div class="pull-right">Connectez-vous avec FaceBook</div></button></div>
+                    <div><br/> </div>
+                    <div><button id="signinCustomGoogle" class="btn btn-danger btn-block"><span class="fa fa-google-plus-square fa-2x social pull-left"></span><div class="pull-right vcenter">Connectez-vous avec Google</div></button></div>
+                    <!--<div class="g-signin2" data-onsuccess="onLoginSuccess"></div>-->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-info" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=	AIzaSyBSNRG03KOKbvehWzNYoD28t-z2Oz4ubAY"> </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+$('#status').hide();
+$('#statusGoogle').hide();
+
+googleStartAuth();
+
+// Here we run a very simple test of the Graph API after login is
+  // successful.  See statusChangeCallback() for when this call is made.
+  function GetInfoOnFacebookConnect() {
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me',{fields:'name,email,gender,birthday'}, function(response) {
+      //document.getElementById('status').innerHTML = response.id;
+      $('#imgFaceBook').attr('src',"https://graph.facebook.com/"+response.id+"/picture?type=square");
+      $('#status').show();
+      $('#loginButton').hide();
+      socket.emit('InsertOrUpdateFacebookUser', response); // Transmet le message au serveur 
+});
+  }
+
+
+function loginFaceBookConnector(){
+FB.login(function(response){
+if (response.status != null) {
+    location.reload();
+  }
+}, {scope: 'email,user_hometown,user_location,user_birthday'});
+}
+// name,email,birthday,hometown,gender
+
+        var socket = io.connect('http://localhost:8080');
+        socket.on('message', function (message) {
+            alert('Le serveur a un message pour vous : ' + message);
+        })
+
+        $("map").height = $(window).height - $("content").height;
+
+        var map;
+        function initMap(data) {
+            
+            getLocation();
+
+            var x = document.getElementById("map");
+
+            function getLocation()
+            {
+                if (navigator.geolocation)
+                { 
+                    navigator.geolocation.getCurrentPosition(showPosition);
+                }
+                else 
+                {
+                    x.innerHTML = "Geolocation is not supported by this browser.";
+                    showPosition(null);
+                }
+            }
+showPosition(null);
+            
+
+            function showPosition(position) {
+                
+                if(position !== null)
+                {
+                    var myLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: myLatLng,
+                    zoom: 13
+                });
+                var marker = new google.maps.Marker({
+                    position: myLatLng,
+                    map: map,
+                    title: 'Ma position'
+                });
+
+                var contentString = '<div id="content">' +
+                    '<div id="siteNotice">' +
+                    '</div>' +
+                    '<h1 id="firstHeading" class="firstHeading">Uluru</h1>' +
+                    '<div id="bodyContent">' +
+                    '<p><b>Uluru</b>, also referred to as <b>Ayers Rock</b>, is a large ' +
+                    'sandstone rock formation in the southern part of the ' +
+                    'Northern Territory, central Australia. It lies 335&#160;km (208&#160;mi) ' +
+                    'south west of the nearest large town, Alice Springs; 450&#160;km ' +
+                    '(280&#160;mi) by road. Kata Tjuta and Uluru are the two major ' +
+                    'features of the Uluru - Kata Tjuta National Park. Uluru is ' +
+                    'sacred to the Pitjantjatjara and Yankunytjatjara, the ' +
+                    'Aboriginal people of the area. It has many springs, waterholes, ' +
+                    'rock caves and ancient paintings. Uluru is listed as a World ' +
+                    'Heritage Site.</p>' +
+                    '<p>Attribution: Uluru, <a href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">' +
+                    'https://en.wikipedia.org/w/index.php?title=Uluru</a> ' +
+                    '(last visited June 22, 2009).</p>' +
+                    '</div>' +
+                    '</div>';
+
+                var infowindow = new google.maps.InfoWindow({ content: contentString });
+                marker.addListener('click', function () { infowindow.open(map, marker); });
+                }
+                else{
+                    map = new google.maps.Map(document.getElementById('map'), {
+                      center:  {lat: 44.8333, lng: -0.5667},
+                    zoom: 13
+                });
+                }
+                if(data == null)
+                {
+                    console.log('data est null');
+                }
+                else
+                {
+                    data.forEach(function (i, obj) {
+                        var x1 = i.latitude; var x2 = i.longitude;
+                         var myLatlng = new google.maps.LatLng(x1, x2);
+                        var marker = new google.maps.Marker({ position: myLatlng ,map: map});
+                        
+//int distance = google.maps.geometry.spherical.computeDistanceBetween(
+
+                        var infowindow = new google.maps.InfoWindow({ content: 'test' });
+                        marker.addListener('click', function () { infowindow.open(map, marker); });
+                    });
+                }
+
+            }
+        }
+
+
+function codeAddress(message) {
+    if(message != "")
+    {
+        var geocoder = new google.maps.Geocoder();
+    var address = message;
+    geocoder.geocode( { 'address': address}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK)
+      {
+          var geloloc = results[0].geometry.location;
+        map.setCenter(results[0].geometry.location);
+
+        var jsonresult = {};
+        var longadress = results[0].geometry.location.lng();
+        var latadress = results[0].geometry.location.lat();
+        var coordonate = [];
+        coordonate.push(longadress);
+        coordonate.push(latadress);
+        var marker = new google.maps.Marker({ map: map, position: results[0].geometry.location
+    });
+    socket.emit('insertvalue', coordonate); // Transmet le message au serveur 
+      } else {
+        alert("Geocode was not successful for the following reason: " + status);
+      }
+    });
+    }
+  }
+        
+
+            $('#formulaire_chat').submit(function () {
+                var message = $('#message').val(); 
+                codeAddress(message);
+                
+                
+                $('#message').val('').focus(); // Vide la zone de Text et remet le focus dessus 
+                return false; // Permet de bloquer l'envoi "classique" du formulaire 
+            });
+
+            // Quand on reçoit un message, on l'insère dans la page
+            socket.on('coordonate', function(data) {
+                if(data != null)
+                    {
+                        initMap(data);
+                    }
+            })
+
+    </script>
+
+</body>
+
+</html>

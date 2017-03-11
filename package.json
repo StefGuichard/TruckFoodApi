@@ -1,0 +1,16 @@
+{
+    "name": "truckfoodapi",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~4.11.0",
+        "ejs": "~2.1.4",
+        "cookie-session": "~1.1.0",
+        "body-parser": "~1.10.1",
+        "socket.io": "~1.2.1",
+        "ent": "~0.1.0",
+        "bootstrap": "~3.3.6",
+        "jquery": "~2.2.4"
+    },
+    "author": "StefG",
+    "description": "Un gestionnaire de googleMaps"
+}
